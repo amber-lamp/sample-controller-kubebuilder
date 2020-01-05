@@ -33,11 +33,13 @@ type FooSpec struct {
 
 // FooStatus defines the observed state of Foo
 type FooStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// this is equal deployment.status.availableReplicas
+	// + optional
+	AvailableReplicas int32 `json:"availableReplicas"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // Foo is the Schema for the foos API
 type Foo struct {
