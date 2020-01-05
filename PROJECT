@@ -1,0 +1,3 @@
+domain: k8s.io
+repo: github.com/amber-lamp/sample-controller-kubebuilder
+version: "2"
