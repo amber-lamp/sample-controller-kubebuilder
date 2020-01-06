@@ -81,5 +81,26 @@ func (r *FooReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&samplecontrollerv1alpha1.Foo{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
+}
+
+func (r *FooReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logger, foo *samplecontrollerv1alpha1.Foo) error {
+	log.Info("finding existing Deployments for Foo resource")
+
+	var deployments appsv1.DeploymentList
+	if err := r.List(ctx, &deployments,
+		client.InNamespace(foo.Namespace),
+		client.MatchingFields(map[string]string{deploymentOwnerKey: foo.Name})); err != nil{
+		return err
+	}
+
+	for _, deployment := range deployments.Items {
+		if deployment.Name == foo.Spec.DeploymentName {
+			continue
+		}
+		if err := r.Delete(ctx, &deployment); err != nil {
+			
+		}
+	}
 }
