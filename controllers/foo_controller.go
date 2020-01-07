@@ -100,7 +100,13 @@ func (r *FooReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logg
 			continue
 		}
 		if err := r.Delete(ctx, &deployment); err != nil {
-			
+			log.Error(err, "Failed to Delete")
+			return err
 		}
+
+		log.Info("Delete Deployment resource: " + deployment.Name)
+		r.Recorder.Eventf(foo, corev1.EventTypeNormal, "Deleted",
+			"Deleted deployment %q", deployment.Name)
 	}
+	return nil
 }
