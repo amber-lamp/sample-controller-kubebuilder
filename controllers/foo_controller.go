@@ -56,6 +56,11 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	if err := r.cleanupOwnedResources(ctx, log, &foo); err != nil {
+		log.Error(err, "failed to clean up old Deployment resources for this Foo")
+	}
+
+
 	return ctrl.Result{}, nil
 }
 
