@@ -60,6 +60,25 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "failed to clean up old Deployment resources for this Foo")
 	}
 
+	deploymentName := foo.Spec.DeploymentName
+
+	deploy := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: deploymentName,
+			Namespace: req.Namespace,
+		},
+	}
+
+	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, deploy, func() error {
+		replicas := int32(i)
+		if foo.Spec.Replicas != nil {
+			replicas = *foo.Spec.Replicas
+		}
+		deploy.Spec.Replicas = &replicas
+	}); err != nil {
+		log.Error(err, "unable to ensure deployment is correct")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
