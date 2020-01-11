@@ -99,7 +99,13 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if deploy.Spec.Template.Spec.Containers == nil {
 			deploy.Spec.Template.Spec.Containers == containers
 		}
-		
+
+		if err := ctrl.SetControllerReference(&foo, deploy, r.Scheme); err != nil {
+			log.Error(err, "unable to set ownerReference from Foo to Deployment")
+			return err
+		}
+
+		return nil
 	}); err != nil {
 		log.Error(err, "unable to ensure deployment is correct")
 		return ctrl.Result{}, err
