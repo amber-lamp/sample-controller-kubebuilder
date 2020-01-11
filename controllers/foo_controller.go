@@ -75,6 +75,31 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			replicas = *foo.Spec.Replicas
 		}
 		deploy.Spec.Replicas = &replicas
+
+		labels := map[string]string{
+			"app": "nginx",
+			"controller": req.Name,
+		}
+
+		if deploy.Spec.Selector == nil {
+			deploy.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
+		}
+
+		if deploy.Spec.Template.ObjectMeta.Labels == nil {
+			deploy.Spec.Template.ObjectMeta.Labels == labels
+		}
+
+		containers := []corev1.Container{
+			{
+				Name:  "nginx",
+				Image: "nginx:latest",
+			},
+		}
+
+		if deploy.Spec.Template.Spec.Containers == nil {
+			deploy.Spec.Template.Spec.Containers == containers
+		}
+		
 	}); err != nil {
 		log.Error(err, "unable to ensure deployment is correct")
 		return ctrl.Result{}, err
