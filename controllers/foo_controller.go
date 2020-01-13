@@ -17,8 +17,6 @@ package controllers
 
 import (
 	"context"
-	"github.com/prometheus/common/log"
-
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -34,8 +32,8 @@ import (
 // FooReconciler reconciles a Foo object
 type FooReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
@@ -64,20 +62,20 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: deploymentName,
+			Name:      deploymentName,
 			Namespace: req.Namespace,
 		},
 	}
 
 	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, deploy, func() error {
-		replicas := int32(i)
+		replicas := int32(1)
 		if foo.Spec.Replicas != nil {
 			replicas = *foo.Spec.Replicas
 		}
 		deploy.Spec.Replicas = &replicas
 
 		labels := map[string]string{
-			"app": "nginx",
+			"app":        "nginx",
 			"controller": req.Name,
 		}
 
@@ -86,7 +84,7 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 
 		if deploy.Spec.Template.ObjectMeta.Labels == nil {
-			deploy.Spec.Template.ObjectMeta.Labels == labels
+			deploy.Spec.Template.ObjectMeta.Labels = labels
 		}
 
 		containers := []corev1.Container{
@@ -97,7 +95,7 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 
 		if deploy.Spec.Template.Spec.Containers == nil {
-			deploy.Spec.Template.Spec.Containers == containers
+			deploy.Spec.Template.Spec.Containers = containers
 		}
 
 		if err := ctrl.SetControllerReference(&foo, deploy, r.Scheme); err != nil {
@@ -112,13 +110,13 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	var deployment appsv1.Deployment
-	var deploymentNameSpacedName = client.ObjectKey{NameSpace: req.NamespacedName, Name: foo.Spec.DeploymentName}
+	var deploymentNameSpacedName = client.ObjectKey{Namespace: req.Namespace, Name: foo.Spec.DeploymentName}
 	if err := r.Get(ctx, deploymentNameSpacedName, &deployment); err != nil {
 		log.Error(err, "unable to fetch Deployment")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	availableReplicas := deployment.Status.AvailableReplicas
-	if availableReplicas == foo.Status.AvailableReplicas{
+	if availableReplicas == foo.Status.AvailableReplicas {
 		return ctrl.Result{}, nil
 	}
 	foo.Status.AvailableReplicas = availableReplicas
@@ -136,7 +134,7 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 var (
 	deploymentOwnerKey = ".metadata.controller"
-	apiGVStr = samplecontrollerv1alpha1.GroupVersion.String()
+	apiGVStr           = samplecontrollerv1alpha1.GroupVersion.String()
 )
 
 func (r *FooReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -166,7 +164,7 @@ func (r *FooReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logg
 	var deployments appsv1.DeploymentList
 	if err := r.List(ctx, &deployments,
 		client.InNamespace(foo.Namespace),
-		client.MatchingFields(map[string]string{deploymentOwnerKey: foo.Name})); err != nil{
+		client.MatchingFields(map[string]string{deploymentOwnerKey: foo.Name})); err != nil {
 		return err
 	}
 
